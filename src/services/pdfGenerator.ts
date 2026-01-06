@@ -1,4 +1,4 @@
-import puppeteer, { Browser, PaperFormat } from 'puppeteer';
+import puppeteer, { Browser, PaperFormat } from 'puppeteer-core';
 
 export interface PdfMargin {
     top?: string;
@@ -13,17 +13,48 @@ export interface GeneratePdfOptions {
     printBackground?: boolean;
 }
 
+// Common Chrome/Chromium executable paths
+const getChromePath = (): string => {
+    const platform = process.platform;
+
+    if (platform === 'win32') {
+        // Windows paths
+        const windowsPaths = [
+            process.env['PROGRAMFILES(X86)'] + '\\Google\\Chrome\\Application\\chrome.exe',
+            process.env['PROGRAMFILES'] + '\\Google\\Chrome\\Application\\chrome.exe',
+            process.env['LOCALAPPDATA'] + '\\Google\\Chrome\\Application\\chrome.exe',
+            'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+            'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+        ];
+        return windowsPaths.find(p => {
+            try {
+                require('fs').accessSync(p);
+                return true;
+            } catch { return false; }
+        }) || windowsPaths[0];
+    } else if (platform === 'darwin') {
+        // macOS
+        return '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+    } else {
+        // Linux
+        return '/usr/bin/google-chrome';
+    }
+};
+
 export class PdfGenerator {
     private browser: Browser | null = null;
 
     /**
-     * Initialize the Puppeteer browser
+     * Initialize the Puppeteer browser using puppeteer-core
      */
     private async initializeBrowser(): Promise<void> {
         if (!this.browser) {
+            const executablePath = process.env.CHROME_PATH || getChromePath();
+
             this.browser = await puppeteer.launch({
-                headless: 'new',
-                args: ['--no-sandbox', '--disable-setuid-sandbox']
+                headless: true,
+                executablePath: executablePath,
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
             });
         }
     }
