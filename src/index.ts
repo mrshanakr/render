@@ -305,10 +305,10 @@ app.get('/health', (_req: Request, res: Response) => {
     res.status(200).json({ status: 'OK', message: 'Server is running' });
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`PDF Render API is running on http://localhost:${PORT}`);
-    console.log(`Swagger Documentation: http://localhost:${PORT}/api-docs`);
+// Start server - bind to 0.0.0.0 for Render compatibility
+app.listen(Number(PORT), '0.0.0.0', () => {
+    console.log(`PDF Render API is running on port ${PORT}`);
+    console.log(`Swagger Documentation: /api-docs`);
     console.log(`POST /api/pdf/generate - Generate PDF from HTML template`);
     console.log(`POST /api/Utility/GeneratePdf - Generate PDF (Legacy endpoint)`);
 });
